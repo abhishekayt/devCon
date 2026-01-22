@@ -3,7 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Box, Cpu, HardDrive } from "lucide-react";
 import { CPUChart } from "@/components/dashboard/cpu-chart";
-
+import { ping } from "@devcon/utils";
+console.log(ping());
 const stats = [
   {
     title: "Total Resources",

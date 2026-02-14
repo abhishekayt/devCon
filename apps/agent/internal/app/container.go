@@ -3,7 +3,7 @@ package app
 import (
 	"fmt"
 
-	"github.com/abhishekkkk-15/devcon/agent/internal/types"
+	"github.com/abhishekkkk-15/devcon/agent/internal/domain"
 	dockerclient "github.com/moby/moby/client"
 )
 
@@ -17,7 +17,7 @@ type DockerManager interface {
 	ListContainers() ([]Container, error)
 	StartContainers(id string) error
 	StopContainers(id string) error
-	CreateContaiers(cfg *types.ContainerCfg) (*dockerclient.ContainerCreateResult, error)
+	CreateContaiers(cfg *domain.ContainerCfg) (*dockerclient.ContainerCreateResult, error)
 }
 
 type ContainerApp struct {
@@ -54,7 +54,7 @@ func (d *ContainerApp) Stop(id string) error {
 	return d.docker.StopContainers(id)
 }
 
-func (d *ContainerApp) StartDevconWeb(cfg *types.ContainerCfg) (string, error) {
+func (d *ContainerApp) StartDevconWeb(cfg *domain.ContainerCfg) (string, error) {
 	cont, err := d.docker.CreateContaiers(cfg)
 	if err != nil {
 		return "", err

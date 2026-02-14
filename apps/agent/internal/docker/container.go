@@ -5,7 +5,7 @@ import (
 	"net/netip"
 
 	"github.com/abhishekkkk-15/devcon/agent/internal/app"
-	"github.com/abhishekkkk-15/devcon/agent/internal/types"
+	"github.com/abhishekkkk-15/devcon/agent/internal/domain"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/network"
 	dockerclient "github.com/moby/moby/client"
@@ -46,7 +46,7 @@ func (d *Daemon) StopContainers(id string) error {
 	return nil
 }
 
-func (d *Daemon) CreateContaiers(cfg *types.ContainerCfg) (*dockerclient.ContainerCreateResult, error) {
+func (d *Daemon) CreateContaiers(cfg *domain.ContainerCfg) (*dockerclient.ContainerCreateResult, error) {
 
 	port, err := network.ParsePort(cfg.ContainerPort + "/tcp")
 	if err != nil {

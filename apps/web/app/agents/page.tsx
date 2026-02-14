@@ -1,9 +1,16 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Circle, Server, Monitor } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Circle, Server, Monitor } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigation } from "react-day-picker";
 
 export default function AgentsPage() {
   return (
@@ -25,7 +32,9 @@ export default function AgentsPage() {
                 </div>
                 <div>
                   <CardTitle>Local Agent</CardTitle>
-                  <CardDescription className="mt-1">macbook-pro.local</CardDescription>
+                  <CardDescription className="mt-1">
+                    macbook-pro.local
+                  </CardDescription>
                 </div>
               </div>
               <Badge variant="outline" className="border-green-500/30">
@@ -41,7 +50,9 @@ export default function AgentsPage() {
                 <p className="text-sm font-medium mt-1">Local Development</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Operating System</p>
+                <p className="text-sm text-muted-foreground">
+                  Operating System
+                </p>
                 <p className="text-sm font-medium mt-1">macOS 14.2</p>
               </div>
               <div>
@@ -75,7 +86,9 @@ export default function AgentsPage() {
               </div>
               <div>
                 <CardTitle>System Resources</CardTitle>
-                <CardDescription className="mt-1">Host machine capacity</CardDescription>
+                <CardDescription className="mt-1">
+                  Host machine capacity
+                </CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -87,9 +100,11 @@ export default function AgentsPage() {
                   <span className="font-medium">8 cores (Apple M2)</span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: '42%' }} />
+                  <div className="h-full bg-primary" style={{ width: "42%" }} />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">42% utilized</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  42% utilized
+                </p>
               </div>
 
               <div>
@@ -98,9 +113,11 @@ export default function AgentsPage() {
                   <span className="font-medium">16 GB</span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: '68%' }} />
+                  <div className="h-full bg-primary" style={{ width: "68%" }} />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">10.9 GB / 16 GB used</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  10.9 GB / 16 GB used
+                </p>
               </div>
 
               <div>
@@ -109,9 +126,11 @@ export default function AgentsPage() {
                   <span className="font-medium">512 GB SSD</span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: '54%' }} />
+                  <div className="h-full bg-primary" style={{ width: "54%" }} />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">276 GB / 512 GB used</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  276 GB / 512 GB used
+                </p>
               </div>
             </div>
           </CardContent>
@@ -129,11 +148,11 @@ export default function AgentsPage() {
           <div className="relative">
             <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
               <code className="text-sm font-mono">
-                docker run -d --name devplatform-agent \{'\n'}
-                {'  '}-v /var/run/docker.sock:/var/run/docker.sock \{'\n'}
-                {'  '}-e AGENT_TOKEN=your_secret_token \{'\n'}
-                {'  '}-e PLATFORM_URL=https://api.devplatform.local \{'\n'}
-                {'  '}ghcr.io/devplatform/agent:latest
+                docker run -d --name devplatform-agent \{"\n"}
+                {"  "}-v /var/run/docker.sock:/var/run/docker.sock \{"\n"}
+                {"  "}-e AGENT_TOKEN=your_secret_token \{"\n"}
+                {"  "}-e PLATFORM_URL=https://api.devplatform.local \{"\n"}
+                {"  "}ghcr.io/devplatform/agent:latest
               </code>
             </pre>
             <Button
@@ -142,15 +161,15 @@ export default function AgentsPage() {
               className="absolute top-2 right-2"
               onClick={() => {
                 navigator.clipboard.writeText(
-                  'docker run -d --name devplatform-agent -v /var/run/docker.sock:/var/run/docker.sock -e AGENT_TOKEN=your_secret_token -e PLATFORM_URL=https://api.devplatform.local ghcr.io/devplatform/agent:latest'
+                  "docker run -d --name devplatform-agent -v /var/run/docker.sock:/var/run/docker.sock -e AGENT_TOKEN=your_secret_token -e PLATFORM_URL=https://api.devplatform.local ghcr.io/devplatform/agent:latest",
                 );
-              }}
-            >
+              }}>
               Copy
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-4">
-            After installation, the agent will automatically connect to your workspace and appear in this dashboard.
+            After installation, the agent will automatically connect to your
+            workspace and appear in this dashboard.
           </p>
         </CardContent>
       </Card>

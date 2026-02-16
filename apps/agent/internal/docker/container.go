@@ -4,24 +4,33 @@ import (
 	"context"
 	"net/netip"
 
-	"github.com/abhishekkkk-15/devcon/agent/internal/app"
 	"github.com/abhishekkkk-15/devcon/agent/internal/domain"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/network"
 	dockerclient "github.com/moby/moby/client"
 )
 
-func (d *Daemon) ListContainers() ([]app.Container, error) {
-	containers, err := d.client.ContainerList(context.Background(), dockerclient.ContainerListOptions{
+func (d *Daemon) Ping(ctx context.Context) error {
+
+	_, err := d.client.Ping(ctx, dockerclient.PingOptions{})
+	if err != nil {
+
+		return err
+	}
+	return nil
+}
+
+func (d *Daemon) ListContainers(ctx context.Context) ([]domain.Container, error) {
+	containers, err := d.client.ContainerList(ctx, dockerclient.ContainerListOptions{
 		All: true,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	var result []app.Container
+	var result []domain.Container
 	for _, c := range containers.Items {
-		result = append(result, app.Container{
+		result = append(result, domain.Container{
 			ID:     c.ID,
 			Image:  c.Image,
 			Status: c.Status,
@@ -30,23 +39,23 @@ func (d *Daemon) ListContainers() ([]app.Container, error) {
 	return result, nil
 }
 
-func (d *Daemon) StartContainers(id string) error {
-	_, err := d.client.ContainerStart(context.Background(), id, dockerclient.ContainerStartOptions{})
+func (d *Daemon) StartContainer(ctx context.Context, id string) error {
+	_, err := d.client.ContainerStart(ctx, id, dockerclient.ContainerStartOptions{})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *Daemon) StopContainers(id string) error {
-	_, err := d.client.ContainerStop(context.Background(), id, dockerclient.ContainerStopOptions{})
+func (d *Daemon) StopContainer(ctx context.Context, id string) error {
+	_, err := d.client.ContainerStop(ctx, id, dockerclient.ContainerStopOptions{})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *Daemon) CreateContaiers(cfg *domain.ContainerCfg) (*dockerclient.ContainerCreateResult, error) {
+func (d *Daemon) CreateContainer(ctx context.Context, cfg *domain.ContainerCfg) (*dockerclient.ContainerCreateResult, error) {
 
 	port, err := network.ParsePort(cfg.ContainerPort + "/tcp")
 	if err != nil {
@@ -60,7 +69,7 @@ func (d *Daemon) CreateContaiers(cfg *domain.ContainerCfg) (*dockerclient.Contai
 	// 	Container world  ← Config
 	// Host world       ← HostConfig
 
-	res, err := d.client.ContainerCreate(context.Background(), dockerclient.ContainerCreateOptions{
+	res, err := d.client.ContainerCreate(ctx, dockerclient.ContainerCreateOptions{
 		Name: cfg.Name,
 		Config: &container.Config{
 			Image: cfg.Image,

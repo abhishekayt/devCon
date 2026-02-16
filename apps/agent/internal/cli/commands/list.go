@@ -1,14 +1,30 @@
 package commands
 
 import (
+	"context"
+	"fmt"
+
+	"github.com/abhishekkkk-15/devcon/agent/internal/app"
 	"github.com/spf13/cobra"
 )
 
-var ListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List running containers",
-	RunE: func(cmd *cobra.Command, args []string) error {
+func NewListCmd(containerApp *app.ContainerApp) *cobra.Command {
+	return &cobra.Command{
+		Use:   "list",
+		Short: "List containers",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := context.Background()
 
-		return nil
-	},
+			containers, err := containerApp.List(ctx)
+			if err != nil {
+				return err
+			}
+
+			for _, c := range containers {
+				fmt.Println(c.ID, c.Image, c.Status)
+			}
+
+			return nil
+		},
+	}
 }

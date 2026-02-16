@@ -1,63 +1,69 @@
 package app
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/abhishekkkk-15/devcon/agent/internal/domain"
-	dockerclient "github.com/moby/moby/client"
+	"github.com/abhishekkkk-15/devcon/agent/internal/service"
 )
 
-type Container struct {
-	ID     string
-	Image  string
-	Status string
-}
-
-type DockerManager interface {
-	ListContainers() ([]Container, error)
-	StartContainers(id string) error
-	StopContainers(id string) error
-	CreateContaiers(cfg *domain.ContainerCfg) (*dockerclient.ContainerCreateResult, error)
-}
-
 type ContainerApp struct {
-	docker DockerManager
+	containerService service.ContainerService
 }
 
-func NewContainerApp(d DockerManager) *ContainerApp {
+func NewContainerApp(c service.ContainerService) *ContainerApp {
 	return &ContainerApp{
-		docker: d,
+		containerService: c,
 	}
 }
 
-func (d *ContainerApp) List() ([]Container, error) {
-	container, err := d.docker.ListContainers()
-	if err != nil {
-		return nil, err
-	}
-	fmt.Print(container)
-	return container, nil
+func (a *ContainerApp) List(ctx context.Context) ([]domain.Container, error) {
+	return a.containerService.ListContainers(ctx)
 }
 
-func (d *ContainerApp) Start(id string) error {
+func (a *ContainerApp) Start(ctx context.Context, id string) error {
 	if id == "" {
 		return fmt.Errorf("container id cannot be empty")
 	}
 
-	return d.docker.StartContainers(id)
+	return a.containerService.StartContainer(ctx, id)
 }
 
-func (d *ContainerApp) Stop(id string) error {
+func (a *ContainerApp) Stop(ctx context.Context, id string) error {
 	if id == "" {
 		return fmt.Errorf("container id cannot be empty")
 	}
-	return d.docker.StopContainers(id)
+
+	return a.containerService.StopContainer(ctx, id)
 }
 
-func (d *ContainerApp) StartDevconWeb(cfg *domain.ContainerCfg) (string, error) {
-	cont, err := d.docker.CreateContaiers(cfg)
+func (a *ContainerApp) StartDevconWeb(ctx context.Context, cfg *domain.ContainerCfg) (string, error) {
+	if err := a.containerService.PingDaemon(ctx); err != nil {
+		return "", err
+	}
+
+	id, err := a.containerService.CreateContainer(ctx, cfg)
 	if err != nil {
 		return "", err
 	}
-	return cont.ID, nil
+
+	if err := a.containerService.StartContainer(ctx, id); err != nil {
+		return "", err
+	}
+
+	return id, nil
+}
+
+func (a *ContainerApp) EnsureRunning(ctx context.Context, identifier string) error {
+	running, err := a.containerService.IsContainerRunning(ctx, identifier)
+	if err != nil {
+		return err
+	}
+
+	if running {
+		return nil
+	}
+
+	return fmt.Errorf("container %s is not running", identifier)
 }

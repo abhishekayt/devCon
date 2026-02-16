@@ -1,6 +1,7 @@
-package service
+package system
 
 import (
+	"context"
 	"time"
 
 	"github.com/abhishekkkk-15/devcon/agent/internal/domain"
@@ -10,38 +11,35 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 )
 
-type SystemService struct{}
+type LocalSystemRepository struct{}
 
-func NewSystenService() *SystemService {
-	return &SystemService{}
-}
-
-func (s *SystemService) GetSystemStats() (*domain.SystemStats, error) {
-	// CPU Info
+func (l *LocalSystemRepository) GetSystemStats(ctx context.Context) (*domain.SystemStats, error) {
 	cpuInfo, err := cpu.Info()
 	if err != nil {
 		return nil, err
 	}
+
 	cpuUsage, err := cpu.Percent(time.Second, false)
 	if err != nil {
 		return nil, err
 	}
-	// Memory
+
 	memInfo, err := mem.VirtualMemory()
 	if err != nil {
 		return nil, err
 	}
-	// Disk (root only to avoid double count)
-	diskInfo, err := disk.Usage("C:\\")
+
+	diskInfo, err := disk.Usage("/")
 	if err != nil {
 		return nil, err
 	}
-	// Host
+
 	hostInfo, err := host.Info()
 	if err != nil {
 		return nil, err
 	}
-	stats := &domain.SystemStats{
+
+	return &domain.SystemStats{
 		CPU: domain.CPUInfo{
 			Model: cpuInfo[0].ModelName,
 			Cores: cpuInfo[0].Cores,
@@ -55,7 +53,6 @@ func (s *SystemService) GetSystemStats() (*domain.SystemStats, error) {
 		},
 		Disk: domain.DiskInfo{
 			TotalGB:     float64(diskInfo.Total) / 1024 / 1024 / 1024,
-			UsedGB:      float64(diskInfo.Used) / 1024 / 1024 / 1024,
 			FreeGB:      float64(diskInfo.Free) / 1024 / 1024 / 1024,
 			UsedPercent: diskInfo.UsedPercent,
 		},
@@ -65,6 +62,5 @@ func (s *SystemService) GetSystemStats() (*domain.SystemStats, error) {
 			Platform: hostInfo.Platform,
 			Version:  hostInfo.PlatformVersion,
 		},
-	}
-	return stats, nil
+	}, nil
 }

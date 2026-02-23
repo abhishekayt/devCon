@@ -8,11 +8,34 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Circle, Server, Monitor } from "lucide-react";
+import { Circle, Server, Monitor, Rss } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigation } from "react-day-picker";
+import { system_service } from "@/service/system/system.service";
+import { useEffect, useState } from "react";
+import { SystemStats } from "@/types/system";
 
 export default function AgentsPage() {
+  const [stats, setStats] = useState<SystemStats>();
+  const { getSystemStats } = system_service;
+  const [loading, setLoading] = useState(false);
+  async function fetchStats() {
+    setLoading(true);
+    try {
+      const res = await getSystemStats();
+      console.log(res.data.stats);
+      setStats(res.data.stats);
+      return res.data;
+    } catch (error) {
+      console.log("err", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+  useEffect(() => {
+    fetchStats();
+  }, []);
+  if (!stats) return <div>Loading</div>;
   return (
     <div className="p-8 space-y-6">
       <div>
@@ -53,7 +76,9 @@ export default function AgentsPage() {
                 <p className="text-sm text-muted-foreground">
                   Operating System
                 </p>
-                <p className="text-sm font-medium mt-1">macOS 14.2</p>
+                <p className="text-sm font-medium mt-1">
+                  {stats?.host.platform}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Agent Version</p>
@@ -97,7 +122,7 @@ export default function AgentsPage() {
               <div>
                 <div className="flex items-center justify-between text-sm mb-2">
                   <span className="text-muted-foreground">CPU Cores</span>
-                  <span className="font-medium">8 cores (Apple M2)</span>
+                  <span className="font-medium">{`${stats?.cpu.cores} (${stats.cpu.model})`}</span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-primary" style={{ width: "42%" }} />
@@ -110,26 +135,37 @@ export default function AgentsPage() {
               <div>
                 <div className="flex items-center justify-between text-sm mb-2">
                   <span className="text-muted-foreground">Memory</span>
-                  <span className="font-medium">16 GB</span>
+                  <span className="font-medium">
+                    {Math.floor(stats.memory.total_gb)}GB
+                  </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-primary" style={{ width: "68%" }} />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  10.9 GB / 16 GB used
+                  {Math.floor(stats.memory.total_gb)} GB /
+                  {Math.floor(stats.memory.used_gb)} GB
                 </p>
               </div>
 
               <div>
                 <div className="flex items-center justify-between text-sm mb-2">
                   <span className="text-muted-foreground">Disk Space</span>
-                  <span className="font-medium">512 GB SSD</span>
+                  <span className="font-medium">
+                    {Math.floor(stats.disk.total_gb)} GB
+                  </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: "54%" }} />
+                  <div
+                    className="h-full bg-primary"
+                    style={{
+                      width: Math.floor(stats.disk.used_percent),
+                    }}
+                  />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  276 GB / 512 GB used
+                  {Math.floor(stats.disk.total_gb)} GB /{" "}
+                  {Math.floor(stats.disk.total_gb)} GB
                 </p>
               </div>
             </div>
@@ -161,7 +197,7 @@ export default function AgentsPage() {
               className="absolute top-2 right-2"
               onClick={() => {
                 navigator.clipboard.writeText(
-                  "docker run -d --name devplatform-agent -v /var/run/docker.sock:/var/run/docker.sock -e AGENT_TOKEN=your_secret_token -e PLATFORM_URL=https://api.devplatform.local ghcr.io/devplatform/agent:latest",
+                  "docker run -d --name devplatform-agent -v /var/run/docker.sock:/var/run/docker.sock -e AGENT_TOKEN=your_secret_token -e PLATFORM_URL=https://api.devplatform.local ghcr.io/devplatform/agent:latest"
                 );
               }}>
               Copy

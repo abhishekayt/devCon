@@ -4,6 +4,7 @@ import (
 	"github.com/abhishekkkk-15/devcon/agent/internal/app"
 	systemRouter "github.com/abhishekkkk-15/devcon/agent/internal/http/system"
 	"github.com/abhishekkkk-15/devcon/agent/internal/util"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,7 +21,12 @@ func SetupRouter(app *app.SystemApp) *gin.Engine {
 	}
 
 	router := gin.Default()
-
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+	}))
+	router.Group("/api/v1")
 	sysRouter := systemRouter.NewSystemRouter(sysHandler)
 	sysRouter.SetupSysterRouter(router)
 	return router

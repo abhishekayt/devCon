@@ -1,40 +1,43 @@
-package main
+package http
 
 import (
 	"github.com/abhishekkkk-15/devcon/agent/internal/app"
-	"github.com/abhishekkkk-15/devcon/agent/internal/transport/cli"
-	"github.com/abhishekkkk-15/devcon/agent/internal/transport/cli/commands"
-	"github.com/abhishekkkk-15/devcon/agent/internal/infra/docker"
-	"github.com/abhishekkkk-15/devcon/agent/internal/core/service"
 	"github.com/abhishekkkk-15/devcon/agent/internal/core/util"
-	"github.com/abhishekkkk-15/devcon/agent/internal/infra/system"
+	containerRouter "github.com/abhishekkkk-15/devcon/agent/internal/transport/http/container"
+	systemRouter "github.com/abhishekkkk-15/devcon/agent/internal/transport/http/system"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
-func main() {
-	util.InitializeEnv()
+func SetupRouter(systemApp *app.SystemApp, containerApp *app.ContainerApp) *gin.Engine {
+	sysHandler := systemRouter.NewSystemHandler(systemApp)
+	conHandler := containerRouter.NewContainerHandler(containerApp)
 
-	// --- Infrastructure ---
-	dockerDaemon, err := docker.NewDaemon()
-	if err != nil {
-		panic(err)
+	env := util.GodotEnv("ENV")
+
+	if env == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	} else if env == "test" {
+		gin.SetMode(gin.TestMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
 	}
-	systemRepo := system.NewSystemRepo()
 
-	// --- Core Services ---
-	containerService := service.NewContainerService(dockerDaemon)
-	systemService := service.NewSystemService(systemRepo)
+	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS"},
+		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+	}))
 
-	// --- Application Layer ---
-	containerApp := app.NewContainerApp(*containerService)
-	systemApp := app.NewSystemApp(systemService)
+	// Register Routers
+	api := router.Group("/api/v1")
+	sysRouter := systemRouter.NewSystemRouter(sysHandler)
+	sysRouter.SetupSystemRouter(api)
 
-	// --- CLI Transport ---
-	rootCmd := cli.NewRootCmd()
-	rootCmd.AddCommand(commands.NewListCmd(containerApp))
-	rootCmd.AddCommand(commands.NewDevconCommand(containerApp))
-	rootCmd.AddCommand(commands.NewStartServer(containerApp, systemApp))
+	conRouter := containerRouter.NewContainerRouter(conHandler)
+	conRouter.SetupContainerRouter(api)
 
-	if err := rootCmd.Execute(); err != nil {
-		panic(err)
-	}
+	return router
 }

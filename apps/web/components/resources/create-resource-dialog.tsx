@@ -19,33 +19,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Resource, ResourceType } from '@/app/resources/page';
+import { CreateResourcePayload, ResourceType } from '@/types/resource';
 
 interface CreateResourceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (resource: Omit<Resource, 'id' | 'cpu' | 'memory' | 'createdAt'>) => void;
+  onCreate: (resource: CreateResourcePayload) => void;
 }
 
 export function CreateResourceDialog({ open, onOpenChange, onCreate }: CreateResourceDialogProps) {
   const [name, setName] = useState('');
   const [type, setType] = useState<ResourceType>('compute');
-  const [cpuLimit, setCpuLimit] = useState('1 core');
-  const [memoryLimit, setMemoryLimit] = useState('2 GB');
+  const [hostPort, setHostPort] = useState('3000');
+
+  const presets: Record<ResourceType, { image: string; containerPort: string; env?: string[] }> = {
+    compute: { image: 'nginx:alpine', containerPort: '80' },
+    postgres: { image: 'postgres:16', containerPort: '5432', env: ['POSTGRES_PASSWORD=devcon', 'POSTGRES_DB=devcon'] },
+    redis: { image: 'redis:7-alpine', containerPort: '6379' },
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const preset = presets[type];
     onCreate({
       name,
-      type,
-      status: 'CREATING',
-      cpuLimit,
-      memoryLimit,
+      image: preset.image,
+      containerPort: preset.containerPort,
+      hostPort,
+      env: preset.env,
     });
     setName('');
     setType('compute');
-    setCpuLimit('1 core');
-    setMemoryLimit('2 GB');
+    setHostPort('3000');
     onOpenChange(false);
   };
 
@@ -88,39 +93,20 @@ export function CreateResourceDialog({ open, onOpenChange, onCreate }: CreateRes
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="cpu">CPU Limit</Label>
-                <Select value={cpuLimit} onValueChange={setCpuLimit}>
-                  <SelectTrigger id="cpu">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0.5 cores">0.5 cores</SelectItem>
-                    <SelectItem value="1 core">1 core</SelectItem>
-                    <SelectItem value="2 cores">2 cores</SelectItem>
-                    <SelectItem value="4 cores">4 cores</SelectItem>
-                    <SelectItem value="8 cores">8 cores</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="memory">Memory Limit</Label>
-                <Select value={memoryLimit} onValueChange={setMemoryLimit}>
-                  <SelectTrigger id="memory">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="512 MB">512 MB</SelectItem>
-                    <SelectItem value="1 GB">1 GB</SelectItem>
-                    <SelectItem value="2 GB">2 GB</SelectItem>
-                    <SelectItem value="4 GB">4 GB</SelectItem>
-                    <SelectItem value="8 GB">8 GB</SelectItem>
-                    <SelectItem value="16 GB">16 GB</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="host-port">Host Port</Label>
+              <Input
+                id="host-port"
+                placeholder="3000"
+                value={hostPort}
+                onChange={(e) => setHostPort(e.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                {type === 'compute' && 'Maps to container port 80 using nginx:alpine'}
+                {type === 'postgres' && 'Maps to container port 5432 using postgres:16'}
+                {type === 'redis' && 'Maps to container port 6379 using redis:7-alpine'}
+              </p>
             </div>
           </div>
 

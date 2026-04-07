@@ -29,6 +29,16 @@ func (h *ContainerHandler) ListHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, containers)
 }
 
+func (h *ContainerHandler) ResourceListHandler(c *gin.Context) {
+	ctx := context.Background()
+	resources, err := h.app.ListResources(ctx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"resources": resources})
+}
+
 func (h *ContainerHandler) StartHandler(c *gin.Context) {
 	id := c.Param("id")
 	ctx := context.Background()
@@ -49,6 +59,16 @@ func (h *ContainerHandler) StopHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Container stopped"})
 }
 
+func (h *ContainerHandler) DeleteHandler(c *gin.Context) {
+	id := c.Param("id")
+	ctx := context.Background()
+	if err := h.app.Delete(ctx, id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Container deleted"})
+}
+
 func (h *ContainerHandler) StartDevconHandler(c *gin.Context) {
 	var cfg domain.ContainerCfg
 	if err := c.ShouldBindJSON(&cfg); err != nil {
@@ -63,4 +83,21 @@ func (h *ContainerHandler) StartDevconHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusAccepted, status)
+}
+
+func (h *ContainerHandler) CreateHandler(c *gin.Context) {
+	var cfg domain.ContainerCfg
+	if err := c.ShouldBindJSON(&cfg); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx := context.Background()
+	created, err := h.app.StartDevconWeb(ctx, &cfg)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, created)
 }

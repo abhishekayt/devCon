@@ -23,7 +23,7 @@ const navigation = [
     icon: Box,
     children: [
       { name: 'Compute', href: '/resources?type=compute', icon: Cpu },
-      { name: 'Databases', href: '/resources?type=database', icon: Database },
+      { name: 'Databases', href: '/resources?type=postgres', icon: Database },
       { name: 'Redis', href: '/resources?type=redis', icon: Radio },
     ],
   },

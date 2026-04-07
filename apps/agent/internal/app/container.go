@@ -24,6 +24,38 @@ func (a *ContainerApp) List(ctx context.Context) (dockerclient.ContainerListResu
 	return a.containerService.ListContainers(ctx)
 }
 
+func (a *ContainerApp) ListResources(ctx context.Context) ([]domain.Resource, error) {
+	containers, err := a.containerService.ListContainers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resources := make([]domain.Resource, 0, len(containers.Items))
+	for _, container := range containers.Items {
+		resource := domain.Resource{
+			ID:        container.ID,
+			Name:      firstContainerName(container.Names),
+			Image:     container.Image,
+			Type:      inferResourceType(container.Image),
+			Status:    strings.ToUpper(string(container.State)),
+			CreatedAt: container.Created,
+		}
+
+		for _, port := range container.Ports {
+			if port.PublicPort != 0 {
+				resource.HostPorts = append(resource.HostPorts, fmt.Sprintf("%d", port.PublicPort))
+			}
+			if port.PrivatePort != 0 {
+				resource.ContainerPort = append(resource.ContainerPort, fmt.Sprintf("%d", port.PrivatePort))
+			}
+		}
+
+		resources = append(resources, resource)
+	}
+
+	return resources, nil
+}
+
 func (a *ContainerApp) Start(ctx context.Context, id string) error {
 	if id == "" {
 		return fmt.Errorf("container id cannot be empty")
@@ -38,6 +70,14 @@ func (a *ContainerApp) Stop(ctx context.Context, id string) error {
 	}
 
 	return a.containerService.StopContainer(ctx, id)
+}
+
+func (a *ContainerApp) Delete(ctx context.Context, id string) error {
+	if id == "" {
+		return fmt.Errorf("container id cannot be empty")
+	}
+
+	return a.containerService.DeleteContainer(ctx, id)
 }
 
 func (a *ContainerApp) StartDevconWeb(
@@ -123,4 +163,26 @@ func buildDevconStatus(
 	}
 
 	return status
+}
+
+func firstContainerName(names []string) string {
+	for _, name := range names {
+		if name != "" {
+			return strings.TrimPrefix(name, "/")
+		}
+	}
+	return ""
+}
+
+func inferResourceType(image string) string {
+	normalized := strings.ToLower(image)
+
+	switch {
+	case strings.Contains(normalized, "postgres"):
+		return "postgres"
+	case strings.Contains(normalized, "redis"):
+		return "redis"
+	default:
+		return "compute"
+	}
 }

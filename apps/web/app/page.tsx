@@ -1,38 +1,82 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Box, Cpu, HardDrive } from "lucide-react";
 import { CPUChart } from "@/components/dashboard/cpu-chart";
-import { ping } from "@devcon/utils";
-console.log(ping());
-const stats = [
-  {
-    title: "Total Resources",
-    value: "12",
-    icon: Box,
-    description: "3 active",
-  },
-  {
-    title: "Running Containers",
-    value: "8",
-    icon: Activity,
-    description: "2 pending",
-  },
-  {
-    title: "Total CPU Usage",
-    value: "42%",
-    icon: Cpu,
-    description: "Across all resources",
-  },
-  {
-    title: "Total Memory Usage",
-    value: "8.4 GB",
-    icon: HardDrive,
-    description: "of 16 GB allocated",
-  },
-];
+import { container_service } from "@/service/container/container.service";
+import { system_service } from "@/service/system/system.service";
+import { Resource } from "@/types/resource";
+import { SystemStats } from "@/types/system";
 
 export default function DashboardPage() {
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
+  const [cpuHistory, setCpuHistory] = useState<Array<{ time: string; cpu: number }>>([]);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      const [resourceRes, systemRes] = await Promise.all([
+        container_service.getResources(),
+        system_service.getSystemStats(),
+      ]);
+
+      setResources(resourceRes.data.resources);
+      setSystemStats(systemRes.data.stats);
+      setCpuHistory((prev) => [
+        ...prev.slice(-11),
+        {
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          cpu: Number(systemRes.data.stats.cpu.usage_percent.toFixed(1)),
+        },
+      ]);
+    };
+
+    void fetchDashboardData();
+    const interval = window.setInterval(() => {
+      void fetchDashboardData();
+    }, 10000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const runningCount = useMemo(
+    () => resources.filter((resource) => resource.status === "RUNNING").length,
+    [resources]
+  );
+
+  const stats = [
+    {
+      title: "Total Resources",
+      value: String(resources.length),
+      icon: Box,
+      description: `${runningCount} active`,
+    },
+    {
+      title: "Running Containers",
+      value: String(runningCount),
+      icon: Activity,
+      description: `${Math.max(resources.length - runningCount, 0)} stopped`,
+    },
+    {
+      title: "Total CPU Usage",
+      value: systemStats ? `${Math.round(systemStats.cpu.usage_percent)}%` : "--",
+      icon: Cpu,
+      description: systemStats ? systemStats.cpu.model : "Across all resources",
+    },
+    {
+      title: "Total Memory Usage",
+      value: systemStats ? `${systemStats.memory.used_gb.toFixed(1)} GB` : "--",
+      icon: HardDrive,
+      description: systemStats
+        ? `of ${systemStats.memory.total_gb.toFixed(1)} GB total`
+        : "Host memory",
+    },
+  ];
+
   return (
     <div className="p-8 space-y-8">
       <div>
@@ -66,7 +110,7 @@ export default function DashboardPage() {
           <CardTitle>CPU Usage Over Time</CardTitle>
         </CardHeader>
         <CardContent>
-          <CPUChart />
+          <CPUChart data={cpuHistory.length > 0 ? cpuHistory : undefined} />
         </CardContent>
       </Card>
     </div>

@@ -47,6 +47,13 @@ func (d *Daemon) StopContainer(ctx context.Context, id string) error {
 	return nil
 }
 
+func (d *Daemon) DeleteContainer(ctx context.Context, id string) error {
+	_, err := d.client.ContainerRemove(ctx, id, dockerclient.ContainerRemoveOptions{
+		Force: true,
+	})
+	return err
+}
+
 func (d *Daemon) CreateContainer(ctx context.Context, cfg *domain.ContainerCfg) (*dockerclient.ContainerCreateResult, error) {
 
 	port, err := network.ParsePort(cfg.ContainerPort + "/tcp")
@@ -65,6 +72,7 @@ func (d *Daemon) CreateContainer(ctx context.Context, cfg *domain.ContainerCfg) 
 		Name: cfg.Name,
 		Config: &container.Config{
 			Image: cfg.Image,
+			Env:   cfg.Env,
 			ExposedPorts: network.PortSet{
 				port: struct{}{},
 			},

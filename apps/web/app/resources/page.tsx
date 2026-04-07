@@ -1,115 +1,78 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { ResourceCard } from '@/components/resources/resource-card';
 import { CreateResourceDialog } from '@/components/resources/create-resource-dialog';
 import { useAiStudio } from '@/components/ai-studio/ai-studio-context';
-
-export type ResourceType = 'compute' | 'postgres' | 'redis';
-export type ResourceStatus = 'CREATING' | 'RUNNING' | 'STOPPED' | 'ERROR';
-
-export interface Resource {
-  id: string;
-  name: string;
-  type: ResourceType;
-  status: ResourceStatus;
-  cpu: number;
-  memory: number;
-  cpuLimit: string;
-  memoryLimit: string;
-  createdAt: string;
-}
-
-const initialResources: Resource[] = [
-  {
-    id: '1',
-    name: 'api-gateway',
-    type: 'compute',
-    status: 'RUNNING',
-    cpu: 45,
-    memory: 62,
-    cpuLimit: '2 cores',
-    memoryLimit: '4 GB',
-    createdAt: '2024-01-15T10:30:00Z',
-  },
-  {
-    id: '2',
-    name: 'postgres-main',
-    type: 'postgres',
-    status: 'RUNNING',
-    cpu: 28,
-    memory: 48,
-    cpuLimit: '1 core',
-    memoryLimit: '2 GB',
-    createdAt: '2024-01-14T14:20:00Z',
-  },
-  {
-    id: '3',
-    name: 'redis-cache',
-    type: 'redis',
-    status: 'RUNNING',
-    cpu: 12,
-    memory: 15,
-    cpuLimit: '0.5 cores',
-    memoryLimit: '1 GB',
-    createdAt: '2024-01-14T09:15:00Z',
-  },
-  {
-    id: '4',
-    name: 'worker-service',
-    type: 'compute',
-    status: 'STOPPED',
-    cpu: 0,
-    memory: 0,
-    cpuLimit: '1 core',
-    memoryLimit: '2 GB',
-    createdAt: '2024-01-13T16:45:00Z',
-  },
-  {
-    id: '5',
-    name: 'postgres-analytics',
-    type: 'postgres',
-    status: 'CREATING',
-    cpu: 0,
-    memory: 0,
-    cpuLimit: '2 cores',
-    memoryLimit: '8 GB',
-    createdAt: '2024-01-16T08:00:00Z',
-  },
-];
+import { container_service } from '@/service/container/container.service';
+import { CreateResourcePayload, Resource, ResourceType } from '@/types/resource';
 
 export default function ResourcesPage() {
-  const [resources, setResources] = useState<Resource[]>(initialResources);
+  const searchParams = useSearchParams();
+  const typeFilter = searchParams.get('type');
+  const [resources, setResources] = useState<Resource[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [mutatingId, setMutatingId] = useState<string | null>(null);
   const { openStudio } = useAiStudio();
 
-  const handleStart = (id: string) => {
-    setResources(resources.map(r =>
-      r.id === id ? { ...r, status: 'RUNNING' as ResourceStatus, cpu: 35, memory: 40 } : r
-    ));
+  const fetchResources = async () => {
+    setLoading(true);
+    try {
+      const res = await container_service.getResources();
+      setResources(res.data.resources);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleStop = (id: string) => {
-    setResources(resources.map(r =>
-      r.id === id ? { ...r, status: 'STOPPED' as ResourceStatus, cpu: 0, memory: 0 } : r
-    ));
+  useEffect(() => {
+    void fetchResources();
+  }, []);
+
+  const filteredResources = useMemo(() => {
+    if (!typeFilter || typeFilter === 'database') {
+      return resources;
+    }
+    return resources.filter((resource) => resource.type === typeFilter);
+  }, [resources, typeFilter]);
+
+  const handleStart = async (id: string) => {
+    setMutatingId(id);
+    try {
+      await container_service.startResource(id);
+      await fetchResources();
+    } finally {
+      setMutatingId(null);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setResources(resources.filter(r => r.id !== id));
+  const handleStop = async (id: string) => {
+    setMutatingId(id);
+    try {
+      await container_service.stopResource(id);
+      await fetchResources();
+    } finally {
+      setMutatingId(null);
+    }
   };
 
-  const handleCreate = (resource: Omit<Resource, 'id' | 'cpu' | 'memory' | 'createdAt'>) => {
-    const newResource: Resource = {
-      ...resource,
-      id: Math.random().toString(36).substr(2, 9),
-      cpu: 0,
-      memory: 0,
-      createdAt: new Date().toISOString(),
-    };
-    setResources([newResource, ...resources]);
+  const handleDelete = async (id: string) => {
+    setMutatingId(id);
+    try {
+      await container_service.deleteResource(id);
+      await fetchResources();
+    } finally {
+      setMutatingId(null);
+    }
+  };
+
+  const handleCreate = async (resource: CreateResourcePayload) => {
+    await container_service.createResource(resource);
+    await fetchResources();
   };
 
   return (
@@ -128,19 +91,30 @@ export default function ResourcesPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {resources.map((resource) => (
+        {!loading && filteredResources.map((resource) => (
           <ResourceCard
             key={resource.id}
             resource={resource}
-            onStart={handleStart}
-            onStop={handleStop}
-            onDelete={handleDelete}
+            onStart={() => void handleStart(resource.id)}
+            onStop={() => void handleStop(resource.id)}
+            onDelete={() => void handleDelete(resource.id)}
             onGenerateWithAi={(selectedResource) =>
               openStudio({ tab: 'compose', resourceType: selectedResource.type })
             }
           />
         ))}
       </div>
+
+      {loading && <div className="text-sm text-muted-foreground">Loading resources...</div>}
+      {!loading && filteredResources.length === 0 && (
+        <div className="rounded-lg border border-dashed border-border p-8 text-sm text-muted-foreground">
+          No resources found{typeFilter ? ` for type "${typeFilter}"` : ''}.
+        </div>
+      )}
+
+      {mutatingId && (
+        <div className="text-xs text-muted-foreground">Applying action to resource {mutatingId.slice(0, 12)}...</div>
+      )}
 
       <CreateResourceDialog
         open={isCreateOpen}

@@ -3,9 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Cpu, Database, Radio, Play, Square, Trash2, Sparkles } from 'lucide-react';
-import { Resource } from '@/app/resources/page';
+import { Resource } from '@/types/resource';
 import { formatDistanceToNow } from 'date-fns';
 import {
   AlertDialog,
@@ -40,16 +39,19 @@ const typeLabels = {
 };
 
 const statusColors = {
+  CREATED: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
   CREATING: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
   RUNNING: 'bg-green-500/10 text-green-500 border-green-500/20',
   STOPPED: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
+  EXITED: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
   ERROR: 'bg-red-500/10 text-red-500 border-red-500/20',
 };
 
 export function ResourceCard({ resource, onStart, onStop, onDelete, onGenerateWithAi }: ResourceCardProps) {
   const Icon = typeIcons[resource.type];
   const isRunning = resource.status === 'RUNNING';
-  const isStopped = resource.status === 'STOPPED';
+  const isStopped = resource.status === 'STOPPED' || resource.status === 'EXITED' || resource.status === 'CREATED';
+  const createdAt = new Date(resource.created_at * 1000);
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -73,27 +75,24 @@ export function ResourceCard({ resource, onStart, onStop, onDelete, onGenerateWi
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">CPU</span>
-              <span className="font-medium">{resource.cpu}% of {resource.cpuLimit}</span>
-            </div>
-            <Progress value={resource.cpu} className="h-2" />
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-xs text-muted-foreground">Image</p>
+            <p className="mt-1 truncate font-medium">{resource.image}</p>
           </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Memory</span>
-              <span className="font-medium">{resource.memory}% of {resource.memoryLimit}</span>
-            </div>
-            <Progress value={resource.memory} className="h-2" />
+          <div>
+            <p className="text-xs text-muted-foreground">Ports</p>
+            <p className="mt-1 font-medium">
+              {resource.host_ports.length > 0
+                ? resource.host_ports.map((port, index) => `${port}:${resource.container_ports[index] ?? "?"}`).join(', ')
+                : 'No published ports'}
+            </p>
           </div>
         </div>
 
         <div className="pt-2 border-t border-border">
           <p className="text-xs text-muted-foreground">
-            Created {formatDistanceToNow(new Date(resource.createdAt), { addSuffix: true })}
+            Created {formatDistanceToNow(createdAt, { addSuffix: true })}
           </p>
         </div>
 

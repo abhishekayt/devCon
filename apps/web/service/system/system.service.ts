@@ -7,7 +7,7 @@ interface ISystemService {
 }
 
 const SERVICE_ENDPOINTS = {
-  SYSTEM: () => "/stats",
+  SYSTEM: () => "/system/stats",
 };
 
 export const system_service: ISystemService = {

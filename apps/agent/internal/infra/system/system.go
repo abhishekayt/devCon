@@ -68,6 +68,7 @@ func (l *SystemRepository) GetSystemStats(ctx context.Context) (*domain.SystemSt
 			OS:       hostInfo.OS,
 			Platform: hostInfo.Platform,
 			Version:  hostInfo.PlatformVersion,
+			Uptime:   hostInfo.Uptime,
 		},
 	}, nil
 }

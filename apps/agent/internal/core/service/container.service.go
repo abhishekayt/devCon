@@ -33,6 +33,10 @@ func (c *ContainerService) StopContainer(ctx context.Context, id string) error {
 	return c.repo.StopContainer(ctx, id)
 }
 
+func (c *ContainerService) DeleteContainer(ctx context.Context, id string) error {
+	return c.repo.DeleteContainer(ctx, id)
+}
+
 func (c *ContainerService) CreateContainer(ctx context.Context, cfg *domain.ContainerCfg) (*dockerclient.ContainerCreateResult, error) {
 	res, err := c.repo.CreateContainer(ctx, cfg)
 	if err != nil {

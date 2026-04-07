@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
+const defaultData = [
   { time: "00:00", cpu: 28 },
   { time: "04:00", cpu: 28 },
   { time: "08:00", cpu: 45 },
@@ -20,7 +20,11 @@ const data = [
   { time: "24:00", cpu: 42 },
 ];
 
-export function CPUChart() {
+export function CPUChart({
+  data = defaultData,
+}: {
+  data?: Array<{ time: string; cpu: number }>;
+}) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>

@@ -31,6 +31,7 @@ type HostInfo struct {
 	OS       string `json:"os"`
 	Platform string `json:"platform"`
 	Version  string `json:"version"`
+	Uptime   uint64 `json:"uptime_seconds"`
 }
 
 type SystemStats struct {

@@ -21,6 +21,7 @@ export type Host = {
   os: string;
   platform: string;
   version: string;
+  uptime_seconds: number;
 };
 
 export type SystemStats = {

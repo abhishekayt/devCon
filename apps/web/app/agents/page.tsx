@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -10,22 +11,39 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Circle, Server, Monitor, Rss } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigation } from "react-day-picker";
 import { system_service } from "@/service/system/system.service";
-import { useEffect, useState } from "react";
 import { SystemStats } from "@/types/system";
+import { container_service } from "@/service/container/container.service";
+import { Resource } from "@/types/resource";
 
 export default function AgentsPage() {
   const [stats, setStats] = useState<SystemStats>();
+  const [resources, setResources] = useState<Resource[]>([]);
   const { getSystemStats } = system_service;
   const [loading, setLoading] = useState(false);
+
+  const uptime = useMemo(() => {
+    if (!stats?.host.uptime_seconds) {
+      return "--";
+    }
+
+    const totalHours = Math.floor(stats.host.uptime_seconds / 3600);
+    const days = Math.floor(totalHours / 24);
+    const hours = totalHours % 24;
+    const minutes = Math.floor((stats.host.uptime_seconds % 3600) / 60);
+
+    return `${days}d ${hours}h ${minutes}m`;
+  }, [stats?.host.uptime_seconds]);
+
   async function fetchStats() {
     setLoading(true);
     try {
-      const res = await getSystemStats();
-      console.log(res.data.stats);
-      setStats(res.data.stats);
-      return res.data;
+      const [systemRes, resourceRes] = await Promise.all([
+        getSystemStats(),
+        container_service.getResources(),
+      ]);
+      setStats(systemRes.data.stats);
+      setResources(resourceRes.data.resources);
     } catch (error) {
       console.log("err", error);
     } finally {
@@ -56,7 +74,7 @@ export default function AgentsPage() {
                 <div>
                   <CardTitle>Local Agent</CardTitle>
                   <CardDescription className="mt-1">
-                    macbook-pro.local
+                    {stats?.host.hostname}
                   </CardDescription>
                 </div>
               </div>
@@ -86,18 +104,18 @@ export default function AgentsPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Uptime</p>
-                <p className="text-sm font-medium mt-1">3d 7h 24m</p>
+                <p className="text-sm font-medium mt-1">{uptime}</p>
               </div>
             </div>
 
             <div className="pt-4 border-t border-border space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Resources Managed</span>
-                <span className="font-medium">8 containers</span>
+                <span className="font-medium">{resources.length} containers</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Last Heartbeat</span>
-                <span className="font-medium">2 seconds ago</span>
+                <span className="font-medium">{loading ? "Refreshing..." : "Live"}</span>
               </div>
             </div>
           </CardContent>
@@ -125,10 +143,10 @@ export default function AgentsPage() {
                   <span className="font-medium">{`${stats?.cpu.cores} (${stats.cpu.model})`}</span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: "42%" }} />
+                  <div className="h-full bg-primary" style={{ width: `${Math.floor(stats.cpu.usage_percent)}%` }} />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  42% utilized
+                  {Math.floor(stats.cpu.usage_percent)}% utilized
                 </p>
               </div>
 
@@ -140,11 +158,11 @@ export default function AgentsPage() {
                   </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: "68%" }} />
+                  <div className="h-full bg-primary" style={{ width: `${Math.floor(stats.memory.used_percent)}%` }} />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {Math.floor(stats.memory.total_gb)} GB /
-                  {Math.floor(stats.memory.used_gb)} GB
+                  {Math.floor(stats.memory.used_gb)} GB /
+                  {Math.floor(stats.memory.total_gb)} GB
                 </p>
               </div>
 
@@ -164,7 +182,7 @@ export default function AgentsPage() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {Math.floor(stats.disk.total_gb)} GB /{" "}
+                  {Math.floor(stats.disk.used_gb)} GB /{" "}
                   {Math.floor(stats.disk.total_gb)} GB
                 </p>
               </div>
@@ -187,8 +205,8 @@ export default function AgentsPage() {
                 docker run -d --name devplatform-agent \{"\n"}
                 {"  "}-v /var/run/docker.sock:/var/run/docker.sock \{"\n"}
                 {"  "}-e AGENT_TOKEN=your_secret_token \{"\n"}
-                {"  "}-e PLATFORM_URL=https://api.devplatform.local \{"\n"}
-                {"  "}ghcr.io/devplatform/agent:latest
+                {"  "}-e PLATFORM_URL=http://localhost:8080 \{"\n"}
+                {"  "}ghcr.io/devcon/agent:latest
               </code>
             </pre>
             <Button
@@ -197,7 +215,7 @@ export default function AgentsPage() {
               className="absolute top-2 right-2"
               onClick={() => {
                 navigator.clipboard.writeText(
-                  "docker run -d --name devplatform-agent -v /var/run/docker.sock:/var/run/docker.sock -e AGENT_TOKEN=your_secret_token -e PLATFORM_URL=https://api.devplatform.local ghcr.io/devplatform/agent:latest"
+                  "docker run -d --name devplatform-agent -v /var/run/docker.sock:/var/run/docker.sock -e AGENT_TOKEN=your_secret_token -e PLATFORM_URL=http://localhost:8080 ghcr.io/devcon/agent:latest"
                 );
               }}>
               Copy

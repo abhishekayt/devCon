@@ -18,8 +18,11 @@ func (r *ContainerRouter) SetupContainerRouter(router *gin.RouterGroup) {
 	api := router.Group("/containers")
 	{
 		api.GET("", r.handler.ListHandler)
+		api.GET("/resources", r.handler.ResourceListHandler)
+		api.POST("", r.handler.CreateHandler)
 		api.POST("/start/:id", r.handler.StartHandler)
 		api.POST("/stop/:id", r.handler.StopHandler)
+		api.DELETE("/:id", r.handler.DeleteHandler)
 		api.POST("/devcon", r.handler.StartDevconHandler)
 	}
 }

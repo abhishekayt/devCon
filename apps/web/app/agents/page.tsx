@@ -9,12 +9,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Circle, Server, Monitor, Rss } from "lucide-react";
+import { Circle, Server, Monitor, ShieldCheck, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { system_service } from "@/service/system/system.service";
 import { SystemStats } from "@/types/system";
 import { container_service } from "@/service/container/container.service";
 import { Resource } from "@/types/resource";
+
+const installCommand = `docker run -d --name devplatform-agent \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e AGENT_TOKEN=your_secret_token \
+  -e PLATFORM_URL=http://localhost:8080 \
+  ghcr.io/devcon/agent:latest`;
 
 export default function AgentsPage() {
   const [stats, setStats] = useState<SystemStats>();
@@ -44,187 +50,158 @@ export default function AgentsPage() {
       ]);
       setStats(systemRes.data.stats);
       setResources(resourceRes.data.resources);
-    } catch (error) {
-      console.log("err", error);
     } finally {
       setLoading(false);
     }
   }
-  useEffect(() => {
-    fetchStats();
-  }, []);
-  if (!stats) return <div>Loading</div>;
-  return (
-    <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Agents</h1>
-        <p className="text-muted-foreground mt-2">
-          Manage local agents that connect your machine to the platform
-        </p>
-      </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+  useEffect(() => {
+    void fetchStats();
+  }, []);
+
+  if (!stats) {
+    return <div className="section-shell text-sm text-muted-foreground">Loading agent status...</div>;
+  }
+
+  return (
+    <div className="section-shell space-y-6">
+      <section className="surface-panel px-6 py-7 sm:px-8 sm:py-8">
+        <div className="max-w-3xl space-y-4">
+          <p className="eyebrow">Agent Surface</p>
+          <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+            Keep the local bridge visible and trustworthy.
+          </h1>
+          <p className="text-sm leading-7 text-muted-foreground sm:text-base">
+            The agent is the runtime handshake between your machine and the control plane. This view should read like operator telemetry, not a setup wizard.
+          </p>
+        </div>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <Card className="surface-card border-white/10 bg-white/5">
           <CardHeader>
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Server className="w-6 h-6 text-primary" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-black/20">
+                  <Server className="h-5 w-5 text-sky-100" />
                 </div>
                 <div>
-                  <CardTitle>Local Agent</CardTitle>
-                  <CardDescription className="mt-1">
-                    {stats?.host.hostname}
+                  <CardTitle className="text-2xl text-white">Local Agent</CardTitle>
+                  <CardDescription className="mt-1 text-muted-foreground">
+                    {stats.host.hostname}
                   </CardDescription>
                 </div>
               </div>
-              <Badge variant="outline" className="border-green-500/30">
-                <Circle className="w-2 h-2 mr-2 fill-green-500" />
+              <Badge className="border border-emerald-400/20 bg-emerald-500/10 text-emerald-100">
+                <Circle className="mr-2 h-2.5 w-2.5 fill-current" />
                 Connected
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Mode</p>
-                <p className="text-sm font-medium mt-1">Local Development</p>
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            {[
+              { label: "Mode", value: "Local Development" },
+              { label: "Operating System", value: stats.host.platform },
+              { label: "Agent Version", value: "v1.4.2" },
+              { label: "Uptime", value: uptime },
+              { label: "Resources Managed", value: `${resources.length} containers` },
+              { label: "Last Heartbeat", value: loading ? "Refreshing..." : "Live" },
+            ].map((item) => (
+              <div key={item.label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{item.label}</p>
+                <p className="mt-2 text-lg font-semibold text-white">{item.value}</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Operating System
-                </p>
-                <p className="text-sm font-medium mt-1">
-                  {stats?.host.platform}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Agent Version</p>
-                <p className="text-sm font-medium mt-1">v1.4.2</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Uptime</p>
-                <p className="text-sm font-medium mt-1">{uptime}</p>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-border space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Resources Managed</span>
-                <span className="font-medium">{resources.length} containers</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Last Heartbeat</span>
-                <span className="font-medium">{loading ? "Refreshing..." : "Live"}</span>
-              </div>
-            </div>
+            ))}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="surface-card border-white/10 bg-white/5">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-muted rounded-lg">
-                <Monitor className="w-6 h-6 text-muted-foreground" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-black/20">
+                <Monitor className="h-5 w-5 text-sky-200" />
               </div>
               <div>
-                <CardTitle>System Resources</CardTitle>
-                <CardDescription className="mt-1">
-                  Host machine capacity
+                <CardTitle className="text-2xl text-white">Host Capacity</CardTitle>
+                <CardDescription className="mt-1 text-muted-foreground">
+                  Real-time pressure on the machine backing the agent
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div>
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">CPU Cores</span>
-                  <span className="font-medium">{`${stats?.cpu.cores} (${stats.cpu.model})`}</span>
+          <CardContent className="space-y-5">
+            {[
+              {
+                label: "CPU",
+                value: `${stats.cpu.cores} cores`,
+                detail: `${Math.floor(stats.cpu.usage_percent)}% utilized`,
+                width: `${Math.floor(stats.cpu.usage_percent)}%`,
+              },
+              {
+                label: "Memory",
+                value: `${Math.floor(stats.memory.total_gb)} GB`,
+                detail: `${Math.floor(stats.memory.used_gb)} GB / ${Math.floor(stats.memory.total_gb)} GB`,
+                width: `${Math.floor(stats.memory.used_percent)}%`,
+              },
+              {
+                label: "Disk",
+                value: `${Math.floor(stats.disk.total_gb)} GB`,
+                detail: `${Math.floor(stats.disk.used_gb)} GB / ${Math.floor(stats.disk.total_gb)} GB`,
+                width: `${Math.floor(stats.disk.used_percent)}%`,
+              },
+            ].map((item) => (
+              <div key={item.label} className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{item.label}</span>
+                  <span className="font-medium text-white">{item.value}</span>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: `${Math.floor(stats.cpu.usage_percent)}%` }} />
+                <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-amber-300" style={{ width: item.width }} />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {Math.floor(stats.cpu.usage_percent)}% utilized
-                </p>
+                <p className="text-xs text-muted-foreground">{item.detail}</p>
               </div>
-
-              <div>
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Memory</span>
-                  <span className="font-medium">
-                    {Math.floor(stats.memory.total_gb)}GB
-                  </span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: `${Math.floor(stats.memory.used_percent)}%` }} />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {Math.floor(stats.memory.used_gb)} GB /
-                  {Math.floor(stats.memory.total_gb)} GB
-                </p>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Disk Space</span>
-                  <span className="font-medium">
-                    {Math.floor(stats.disk.total_gb)} GB
-                  </span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary"
-                    style={{
-                      width: Math.floor(stats.disk.used_percent),
-                    }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {Math.floor(stats.disk.used_gb)} GB /{" "}
-                  {Math.floor(stats.disk.total_gb)} GB
-                </p>
-              </div>
-            </div>
+            ))}
           </CardContent>
         </Card>
-      </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Install Agent</CardTitle>
-          <CardDescription>
-            Run this command to install the agent on a new machine
-          </CardDescription>
+      <Card className="surface-card border-white/10 bg-white/5">
+        <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="eyebrow">Bootstrap</p>
+            <CardTitle className="mt-2 text-2xl text-white">Install agent on another machine</CardTitle>
+            <CardDescription className="mt-2 text-muted-foreground">
+              Use the same runtime contract everywhere so local environments stay predictable.
+            </CardDescription>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-muted-foreground">
+            Socket mount required
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="relative">
-            <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
-              <code className="text-sm font-mono">
-                docker run -d --name devplatform-agent \{"\n"}
-                {"  "}-v /var/run/docker.sock:/var/run/docker.sock \{"\n"}
-                {"  "}-e AGENT_TOKEN=your_secret_token \{"\n"}
-                {"  "}-e PLATFORM_URL=http://localhost:8080 \{"\n"}
-                {"  "}ghcr.io/devcon/agent:latest
-              </code>
+        <CardContent className="space-y-4">
+          <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-[#0d0b09] p-5">
+            <pre className="overflow-x-auto text-sm leading-7 text-zinc-200">
+              <code className="font-mono whitespace-pre-wrap">{installCommand}</code>
             </pre>
             <Button
               size="sm"
               variant="secondary"
-              className="absolute top-2 right-2"
+              className="absolute right-4 top-4 rounded-2xl border border-white/10 bg-white/10 text-white hover:bg-white/15"
               onClick={() => {
                 navigator.clipboard.writeText(
                   "docker run -d --name devplatform-agent -v /var/run/docker.sock:/var/run/docker.sock -e AGENT_TOKEN=your_secret_token -e PLATFORM_URL=http://localhost:8080 ghcr.io/devcon/agent:latest"
                 );
-              }}>
+              }}
+            >
+              <Copy className="mr-2 h-3.5 w-3.5" />
               Copy
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground mt-4">
-            After installation, the agent will automatically connect to your
-            workspace and appear in this dashboard.
-          </p>
+
+          <div className="flex items-start gap-3 rounded-2xl border border-emerald-400/10 bg-emerald-500/5 p-4 text-sm text-emerald-100">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+            After installation, the agent will connect to the workspace and immediately expose resource controls, logs, and Docker state.
+          </div>
         </CardContent>
       </Card>
     </div>

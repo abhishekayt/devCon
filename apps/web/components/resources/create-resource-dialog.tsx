@@ -30,28 +30,31 @@ services:
       - "3000:3000"
     command: ["sleep", "infinity"]`;
 
-const presets: Record<ResourceType, { image?: string; containerPort?: string; hostPort?: string; env?: string[]; description: string }> = {
+const presets: Record<
+  ResourceType,
+  { image?: string; containerPort?: string; hostPort?: string; env?: string[]; description: string }
+> = {
   compute: {
     image: 'nginx:alpine',
     containerPort: '80',
     hostPort: '3000',
-    description: 'General compute container running nginx for quick HTTP responses.',
+    description: 'Fast general-purpose HTTP workload for demos, previews, and temporary utilities.',
   },
   postgres: {
     image: 'postgres:16',
     containerPort: '5432',
     hostPort: '5432',
     env: ['POSTGRES_PASSWORD=devcon', 'POSTGRES_DB=devcon'],
-    description: 'PostgreSQL 16 with a default database and password.',
+    description: 'Default PostgreSQL service with local credentials and a ready-to-use database.',
   },
   redis: {
     image: 'redis:7-alpine',
     containerPort: '6379',
     hostPort: '6379',
-    description: 'Redis cache ready to accept connections on 6379.',
+    description: 'Lightweight cache node for queues, sessions, and event pipelines.',
   },
   custom: {
-    description: 'Paste your own docker-compose stack and we will orchestrate it locally.',
+    description: 'Paste your own Docker Compose stack when the presets are too narrow.',
   },
 };
 
@@ -61,7 +64,11 @@ interface CreateResourceDialogProps {
   onCreate: (resource: CreateResourcePayload) => void;
 }
 
-export function CreateResourceDialog({ open, onOpenChange, onCreate }: CreateResourceDialogProps) {
+export function CreateResourceDialog({
+  open,
+  onOpenChange,
+  onCreate,
+}: CreateResourceDialogProps) {
   const [name, setName] = useState('');
   const [type, setType] = useState<ResourceType>('compute');
   const [hostPort, setHostPort] = useState('3000');
@@ -120,19 +127,20 @@ export function CreateResourceDialog({ open, onOpenChange, onCreate }: CreateRes
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="border-white/10 bg-[#15110e] text-white sm:max-w-[620px]">
         <DialogHeader>
-          <DialogTitle>Create Resource</DialogTitle>
-          <DialogDescription>
-            Configure and deploy a new resource to your local environment
+          <p className="eyebrow">Provision Resource</p>
+          <DialogTitle className="text-3xl font-semibold tracking-tight">Create a new local service</DialogTitle>
+          <DialogDescription className="text-sm leading-6 text-muted-foreground">
+            Choose a preset when speed matters, or switch to Compose when you need a fuller topology.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid gap-5 py-2 sm:grid-cols-2">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="type">Resource Type</Label>
               <Select value={type} onValueChange={(value) => setType(value as ResourceType)}>
-                <SelectTrigger id="type">
+                <SelectTrigger id="type" className="rounded-2xl border-white/10 bg-white/5">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -142,12 +150,10 @@ export function CreateResourceDialog({ open, onOpenChange, onCreate }: CreateRes
                   <SelectItem value="custom">Custom Docker Compose</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                {presets[type].description}
-              </p>
+              <p className="text-xs leading-5 text-muted-foreground">{presets[type].description}</p>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="name">Resource Name</Label>
               <Input
                 id="name"
@@ -155,77 +161,82 @@ export function CreateResourceDialog({ open, onOpenChange, onCreate }: CreateRes
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                className="rounded-2xl border-white/10 bg-white/5"
               />
               <p className="text-xs text-muted-foreground">
-                Use lowercase letters, numbers, and hyphens
+                Use lowercase letters, numbers, and hyphens.
               </p>
             </div>
 
             {type !== 'custom' && (
-              <div className="space-y-2">
-                <Label htmlFor="host-port">Host Port</Label>
-                <Input
-                  id="host-port"
-                  placeholder="3000"
-                  value={hostPort}
-                  onChange={(e) => setHostPort(e.target.value)}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  {type === 'compute' && 'Maps to container port 80 using nginx:alpine'}
-                  {type === 'postgres' && 'Maps to container port 5432 using postgres:16'}
-                  {type === 'redis' && 'Maps to container port 6379 using redis:7-alpine'}
-                </p>
-              </div>
-            )}
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="host-port">Host Port</Label>
+                  <Input
+                    id="host-port"
+                    placeholder="3000"
+                    value={hostPort}
+                    onChange={(e) => setHostPort(e.target.value)}
+                    required
+                    className="rounded-2xl border-white/10 bg-white/5"
+                  />
+                </div>
 
-            {type !== 'custom' && (
-              <div className="space-y-2">
-                <Label htmlFor="image">Container Image</Label>
-                <Input
-                  id="image"
-                  placeholder="e.g. nginx:alpine"
-                  value={image}
-                  onChange={(e) => setImage(e.target.value)}
-                  required
-                />
-              </div>
-            )}
+                <div className="space-y-2">
+                  <Label htmlFor="container-port">Container Port</Label>
+                  <Input
+                    id="container-port"
+                    placeholder="80"
+                    value={containerPort}
+                    onChange={(e) => setContainerPort(e.target.value)}
+                    required
+                    className="rounded-2xl border-white/10 bg-white/5"
+                  />
+                </div>
 
-            {type !== 'custom' && (
-              <div className="space-y-2">
-                <Label htmlFor="container-port">Container Port</Label>
-                <Input
-                  id="container-port"
-                  placeholder="80"
-                  value={containerPort}
-                  onChange={(e) => setContainerPort(e.target.value)}
-                  required
-                />
-              </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="image">Container Image</Label>
+                  <Input
+                    id="image"
+                    placeholder="e.g. nginx:alpine"
+                    value={image}
+                    onChange={(e) => setImage(e.target.value)}
+                    required
+                    className="rounded-2xl border-white/10 bg-white/5"
+                  />
+                </div>
+              </>
             )}
 
             {type === 'custom' && (
-              <div className="space-y-2">
+              <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="compose-yaml">Docker Compose</Label>
                 <Textarea
                   id="compose-yaml"
-                  rows={6}
+                  rows={10}
                   placeholder="Paste your docker-compose.yml content"
                   value={composeYaml}
                   onChange={(e) => setComposeYaml(e.target.value)}
                   required
-                  className="font-mono text-xs"
+                  className="rounded-[22px] border-white/10 bg-black/30 font-mono text-xs"
                 />
               </div>
             )}
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="rounded-2xl border-white/10 bg-white/5 text-white hover:bg-white/10"
+            >
               Cancel
             </Button>
-            <Button type="submit">
+            <Button
+              type="submit"
+              className="rounded-2xl bg-sky-300 text-slate-950 hover:bg-sky-200"
+            >
               {type === 'custom' ? 'Create Compose Resource' : 'Create Resource'}
             </Button>
           </DialogFooter>

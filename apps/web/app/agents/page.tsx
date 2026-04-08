@@ -83,7 +83,7 @@ export default function AgentsPage() {
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-black/20">
-                  <Server className="h-5 w-5 text-orange-200" />
+                  <Server className="h-5 w-5 text-sky-100" />
                 </div>
                 <div>
                   <CardTitle className="text-2xl text-white">Local Agent</CardTitle>
@@ -156,7 +156,7 @@ export default function AgentsPage() {
                   <span className="font-medium text-white">{item.value}</span>
                 </div>
                 <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full rounded-full bg-gradient-to-r from-orange-400 to-sky-400" style={{ width: item.width }} />
+                  <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-amber-300" style={{ width: item.width }} />
                 </div>
                 <p className="text-xs text-muted-foreground">{item.detail}</p>
               </div>

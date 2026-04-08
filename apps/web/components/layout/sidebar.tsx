@@ -36,11 +36,11 @@ export function Sidebar() {
   const activeType = searchParams.get('type');
 
   return (
-    <aside className="hidden w-[290px] shrink-0 border-r border-white/10 bg-[#120f0c]/95 xl:flex xl:flex-col">
+    <aside className="hidden w-[290px] shrink-0 border-r border-white/10 bg-[#0f1724]/95 xl:flex xl:flex-col">
       <div className="border-b border-white/10 px-6 py-6">
-        <div className="surface-card overflow-hidden bg-gradient-to-br from-orange-500/16 via-transparent to-sky-500/10 p-5">
+        <div className="surface-card overflow-hidden bg-gradient-to-br from-sky-400/14 via-transparent to-amber-300/10 p-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-black shadow-[0_10px_35px_rgba(249,115,22,0.4)]">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-300 text-slate-950 shadow-[0_10px_35px_rgba(56,189,248,0.28)]">
               <Server className="h-5 w-5" />
             </div>
             <div>
@@ -79,7 +79,7 @@ export function Sidebar() {
                       className={cn(
                         'flex h-9 w-9 items-center justify-center rounded-xl border transition-colors',
                         active
-                          ? 'border-orange-400/40 bg-orange-500/15 text-orange-200'
+                          ? 'border-sky-300/35 bg-sky-400/12 text-sky-100'
                           : 'border-white/10 bg-white/5 text-muted-foreground group-hover:text-white'
                       )}
                     >
@@ -87,7 +87,7 @@ export function Sidebar() {
                     </div>
                     <span className="font-medium">{item.name}</span>
                   </div>
-                  {active && <ArrowUpRight className="h-4 w-4 text-orange-300" />}
+                  {active && <ArrowUpRight className="h-4 w-4 text-amber-200" />}
                 </Link>
               );
             })}
@@ -110,7 +110,7 @@ export function Sidebar() {
                   href={item.href}
                   className={cn(
                     'flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm transition-all',
-                    active ? 'bg-orange-500/12 text-orange-100' : 'text-muted-foreground hover:bg-white/5 hover:text-white'
+                    active ? 'bg-sky-400/10 text-sky-100' : 'text-muted-foreground hover:bg-white/5 hover:text-white'
                   )}
                 >
                   <item.icon className="h-4 w-4" />
@@ -123,7 +123,7 @@ export function Sidebar() {
 
         <section className="px-3">
           <div className="surface-card ambient-grid overflow-hidden p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-200/80">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-100/80">
               System Pulse
             </p>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">

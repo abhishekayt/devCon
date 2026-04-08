@@ -22,8 +22,8 @@ export function Header() {
                   variant="outline"
                   className="h-11 rounded-2xl border-white/10 bg-white/5 px-4 text-sm text-white hover:bg-white/10"
                 >
-                  <span className="mr-2 text-left">
-                    <span className="block text-[0.68rem] uppercase tracking-[0.2em] text-orange-200/70">
+                    <span className="mr-2 text-left">
+                    <span className="block text-[0.68rem] uppercase tracking-[0.2em] text-amber-100/70">
                       Workspace
                     </span>
                     <span className="block font-semibold">Production Workspace</span>
@@ -53,7 +53,7 @@ export function Header() {
               <Circle className="mr-2 h-2.5 w-2.5 fill-current" />
               Agent Connected
             </Badge>
-            <Badge className="h-10 rounded-2xl border border-sky-400/20 bg-sky-500/10 px-3 text-sky-100 hover:bg-sky-500/15">
+            <Badge className="h-10 rounded-2xl border border-amber-300/20 bg-amber-300/10 px-3 text-amber-100 hover:bg-amber-300/15">
               <Sparkles className="mr-2 h-3.5 w-3.5" />
               Local Mode
             </Badge>

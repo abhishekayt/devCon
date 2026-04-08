@@ -75,7 +75,7 @@ export function ResourceCard({
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-black/20">
-              <Icon className="h-5 w-5 text-orange-200" />
+              <Icon className="h-5 w-5 text-sky-100" />
             </div>
             <div>
               <CardTitle className="text-lg text-white">{resource.name}</CardTitle>
@@ -116,7 +116,7 @@ export function ResourceCard({
         <Button
           variant="secondary"
           size="sm"
-          className="h-11 w-full rounded-2xl border border-orange-400/20 bg-orange-500/10 text-orange-100 hover:bg-orange-500/15"
+          className="h-11 w-full rounded-2xl border border-sky-300/20 bg-sky-400/10 text-sky-100 hover:bg-sky-400/15"
           onClick={() => onGenerateWithAi(resource)}
         >
           <Sparkles className="mr-2 h-3.5 w-3.5" />

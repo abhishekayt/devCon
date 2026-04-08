@@ -126,7 +126,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="flex justify-end">
-        <Button className="rounded-2xl bg-orange-500 px-5 text-black hover:bg-orange-400">
+        <Button className="rounded-2xl bg-sky-300 px-5 text-slate-950 hover:bg-sky-200">
           Save Changes
         </Button>
       </div>

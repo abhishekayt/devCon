@@ -235,7 +235,7 @@ export function CreateResourceDialog({
             </Button>
             <Button
               type="submit"
-              className="rounded-2xl bg-orange-500 text-black hover:bg-orange-400"
+              className="rounded-2xl bg-sky-300 text-slate-950 hover:bg-sky-200"
             >
               {type === 'custom' ? 'Create Compose Resource' : 'Create Resource'}
             </Button>

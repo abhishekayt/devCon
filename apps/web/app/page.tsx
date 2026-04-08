@@ -109,7 +109,7 @@ export default function DashboardPage() {
             <div className="surface-card p-5">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">Live Fleet</p>
-                <Server className="h-4 w-4 text-orange-300" />
+                <Server className="h-4 w-4 text-sky-200" />
               </div>
               <p className="mt-4 text-4xl font-semibold text-white">{runningCount}</p>
               <p className="mt-2 text-sm text-muted-foreground">containers currently serving traffic or workloads</p>
@@ -134,7 +134,7 @@ export default function DashboardPage() {
                 {stat.title}
               </CardTitle>
               <div className="rounded-xl border border-white/10 bg-white/5 p-2">
-                <stat.icon className="h-4 w-4 text-orange-200" />
+                <stat.icon className="h-4 w-4 text-sky-100" />
               </div>
             </CardHeader>
             <CardContent>
@@ -183,7 +183,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-muted-foreground">{resource.status}</span>
-                    <ArrowRight className="h-4 w-4 text-orange-300" />
+                    <ArrowRight className="h-4 w-4 text-amber-200" />
                   </div>
                 </div>
               ))

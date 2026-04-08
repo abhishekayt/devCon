@@ -120,7 +120,7 @@ export function ResourceInspectorDialog({
             <Button variant="outline" size="sm" className="rounded-2xl border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={() => void handleRefreshLogs()}>
               Refresh Logs
             </Button>
-            <Button size="sm" className="rounded-2xl bg-orange-500 text-black hover:bg-orange-400" onClick={() => void handleRestart()} disabled={restarting}>
+            <Button size="sm" className="rounded-2xl bg-sky-300 text-slate-950 hover:bg-sky-200" onClick={() => void handleRestart()} disabled={restarting}>
               {restarting ? 'Restarting...' : 'Restart'}
             </Button>
           </div>

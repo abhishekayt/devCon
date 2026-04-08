@@ -28,7 +28,7 @@ function renderKeyValueList(items: string[]) {
   return (
     <div className="space-y-2">
       {items.map((item) => (
-        <div key={item} className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs font-mono">
+        <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-mono text-zinc-100">
           {item}
         </div>
       ))}
@@ -103,13 +103,13 @@ export function ResourceInspectorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl border-white/10 bg-[#15110e] text-white">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <span>{resource.name}</span>
-            <Badge variant="outline">{resource.status}</Badge>
+            <Badge variant="outline" className="border-white/10 bg-white/5 text-zinc-100">{resource.status}</Badge>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-muted-foreground">
             Inspect Docker metadata, recent logs, and runtime configuration.
           </DialogDescription>
         </DialogHeader>
@@ -117,10 +117,10 @@ export function ResourceInspectorDialog({
         <div className="flex items-center justify-between gap-3">
           <div className="text-xs text-muted-foreground">{resource.image}</div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => void handleRefreshLogs()}>
+            <Button variant="outline" size="sm" className="rounded-2xl border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={() => void handleRefreshLogs()}>
               Refresh Logs
             </Button>
-            <Button size="sm" onClick={() => void handleRestart()} disabled={restarting}>
+            <Button size="sm" className="rounded-2xl bg-orange-500 text-black hover:bg-orange-400" onClick={() => void handleRestart()} disabled={restarting}>
               {restarting ? 'Restarting...' : 'Restart'}
             </Button>
           </div>
@@ -130,7 +130,7 @@ export function ResourceInspectorDialog({
           <div className="py-10 text-sm text-muted-foreground">Loading Docker details...</div>
         ) : (
           <Tabs defaultValue="details" className="space-y-4">
-            <TabsList>
+            <TabsList className="rounded-2xl border border-white/10 bg-white/5">
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="logs">Logs</TabsTrigger>
               <TabsTrigger value="runtime">Runtime</TabsTrigger>
@@ -138,9 +138,9 @@ export function ResourceInspectorDialog({
 
             <TabsContent value="details" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border border-border p-4">
-                  <p className="text-xs text-muted-foreground">Ports</p>
-                  <p className="mt-2 text-sm font-medium">
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Ports</p>
+                  <p className="mt-2 text-sm font-medium text-white">
                     {details?.host_ports.length
                       ? details.host_ports
                           .map((port, index) => `${port}:${details.container_ports[index] ?? '?'}`)
@@ -148,17 +148,17 @@ export function ResourceInspectorDialog({
                       : 'No published ports'}
                   </p>
                 </div>
-                <div className="rounded-lg border border-border p-4">
-                  <p className="text-xs text-muted-foreground">Networks</p>
-                  <p className="mt-2 text-sm font-medium">
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Networks</p>
+                  <p className="mt-2 text-sm font-medium text-white">
                     {details?.networks.length ? details.networks.join(', ') : 'No attached networks'}
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border p-4">
-                <p className="text-xs text-muted-foreground">Command</p>
-                <p className="mt-2 break-all text-sm font-mono">
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Command</p>
+                <p className="mt-2 break-all text-sm font-mono text-white">
                   {details?.command.length ? details.command.join(' ') : 'Default image command'}
                 </p>
               </div>
@@ -173,16 +173,16 @@ export function ResourceInspectorDialog({
             </TabsContent>
 
             <TabsContent value="runtime" className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-3 rounded-lg border border-border p-4">
-                <p className="text-xs text-muted-foreground">Environment</p>
+              <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Environment</p>
                 {renderKeyValueList(details?.env ?? [])}
               </div>
-              <div className="space-y-3 rounded-lg border border-border p-4">
-                <p className="text-xs text-muted-foreground">Mounts</p>
+              <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Mounts</p>
                 {renderKeyValueList(details?.mounts ?? [])}
               </div>
-              <div className="space-y-3 rounded-lg border border-border p-4 md:col-span-2">
-                <p className="text-xs text-muted-foreground">Labels</p>
+              <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4 md:col-span-2">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Labels</p>
                 {renderKeyValueList(
                   Object.entries(details?.labels ?? {}).map(([key, value]) => `${key}=${value}`)
                 )}

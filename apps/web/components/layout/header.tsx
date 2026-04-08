@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, Circle } from 'lucide-react';
+import { ChevronDown, Circle, Command, Search, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,32 +12,53 @@ import { Badge } from '@/components/ui/badge';
 
 export function Header() {
   return (
-    <header className="flex items-center justify-between h-16 px-6 border-b border-border bg-card">
-      <div className="flex items-center gap-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <span className="font-medium">Production Workspace</span>
-              <ChevronDown className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem>Production Workspace</DropdownMenuItem>
-            <DropdownMenuItem>Development Workspace</DropdownMenuItem>
-            <DropdownMenuItem>Staging Workspace</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+    <header className="sticky top-0 z-20 border-b border-white/10 bg-background/80 backdrop-blur-2xl">
+      <div className="section-shell py-4">
+        <div className="surface-panel flex flex-col gap-4 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-11 rounded-2xl border-white/10 bg-white/5 px-4 text-sm text-white hover:bg-white/10"
+                >
+                  <span className="mr-2 text-left">
+                    <span className="block text-[0.68rem] uppercase tracking-[0.2em] text-orange-200/70">
+                      Workspace
+                    </span>
+                    <span className="block font-semibold">Production Workspace</span>
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem>Production Workspace</DropdownMenuItem>
+                <DropdownMenuItem>Development Workspace</DropdownMenuItem>
+                <DropdownMenuItem>Staging Workspace</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-      <div className="flex items-center gap-3">
-        <Badge variant="secondary" className="bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-500/20">
-          <Circle className="w-2 h-2 mr-2 fill-current" />
-          Local Mode
-        </Badge>
-        <Badge variant="outline" className="border-green-500/30">
-          <Circle className="w-2 h-2 mr-2 fill-green-500" />
-          Agent Connected
-        </Badge>
+            <div className="hidden h-11 min-w-[240px] items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 text-sm text-muted-foreground md:flex">
+              <Search className="h-4 w-4" />
+              <span className="flex-1">Search routes, containers, or commands</span>
+              <span className="rounded-lg border border-white/10 px-2 py-0.5 text-[0.68rem] uppercase tracking-[0.16em]">
+                <Command className="mr-1 inline h-3 w-3" />
+                K
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className="h-10 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-3 text-emerald-200 hover:bg-emerald-500/15">
+              <Circle className="mr-2 h-2.5 w-2.5 fill-current" />
+              Agent Connected
+            </Badge>
+            <Badge className="h-10 rounded-2xl border border-sky-400/20 bg-sky-500/10 px-3 text-sky-100 hover:bg-sky-500/15">
+              <Sparkles className="mr-2 h-3.5 w-3.5" />
+              Local Mode
+            </Badge>
+          </div>
+        </div>
       </div>
     </header>
   );

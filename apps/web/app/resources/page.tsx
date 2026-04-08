@@ -3,12 +3,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Sparkles, Cpu, Database, Radio, Boxes } from 'lucide-react';
 import { ResourceCard } from '@/components/resources/resource-card';
 import { CreateResourceDialog } from '@/components/resources/create-resource-dialog';
 import { useAiStudio } from '@/components/ai-studio/ai-studio-context';
 import { container_service } from '@/service/container/container.service';
 import { CreateResourcePayload, Resource } from '@/types/resource';
+import { cn } from '@/lib/utils';
+
+const filterPills = [
+  { label: 'All', value: null, icon: Boxes },
+  { label: 'Compute', value: 'compute', icon: Cpu },
+  { label: 'Postgres', value: 'postgres', icon: Database },
+  { label: 'Redis', value: 'redis', icon: Radio },
+  { label: 'Stacks', value: 'custom', icon: Sparkles },
+];
 
 export default function ResourcesPage() {
   const searchParams = useSearchParams();
@@ -39,6 +48,8 @@ export default function ResourcesPage() {
     }
     return resources.filter((resource) => resource.type === typeFilter);
   }, [resources, typeFilter]);
+
+  const runningCount = filteredResources.filter((resource) => resource.status === 'RUNNING').length;
 
   const handleStart = async (id: string) => {
     setMutatingId(id);
@@ -86,45 +97,96 @@ export default function ResourcesPage() {
   };
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Resources</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage compute, database, cache, and custom compose resources
-          </p>
+    <div className="section-shell space-y-6">
+      <section className="surface-panel overflow-hidden px-6 py-7 sm:px-8 sm:py-8">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+          <div className="max-w-3xl space-y-4">
+            <p className="eyebrow">Resource Fleet</p>
+            <div className="space-y-3">
+              <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+                Make the container grid feel operational, not accidental.
+              </h1>
+              <p className="text-sm leading-7 text-muted-foreground sm:text-base">
+                Create workloads, inspect the running estate, and jump from runtime state into generated Docker config without losing context.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Visible</p>
+              <p className="mt-1 text-2xl font-semibold text-white">{filteredResources.length}</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Running</p>
+              <p className="mt-1 text-2xl font-semibold text-emerald-200">{runningCount}</p>
+            </div>
+            <Button
+              onClick={() => setIsCreateOpen(true)}
+              className="h-12 rounded-2xl bg-orange-500 px-5 text-sm font-semibold text-black hover:bg-orange-400"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create Resource
+            </Button>
+          </div>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Create Resource
-        </Button>
-      </div>
+      </section>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {!loading && filteredResources.map((resource) => (
-          <ResourceCard
-            key={resource.id}
-            resource={resource}
-            onStart={() => void handleStart(resource.id)}
-            onRestart={() => void handleRestart(resource.id)}
-            onStop={() => void handleStop(resource.id)}
-            onDelete={() => void handleDelete(resource.id)}
-            onGenerateWithAi={(selectedResource) =>
-              openStudio({ tab: 'compose', resourceType: selectedResource.type })
-            }
-          />
-        ))}
-      </div>
+      <section className="flex flex-wrap gap-2">
+        {filterPills.map((pill) => {
+          const active = (pill.value === null && !typeFilter) || typeFilter === pill.value;
+          const Icon = pill.icon;
 
-      {loading && <div className="text-sm text-muted-foreground">Loading resources...</div>}
-      {!loading && filteredResources.length === 0 && (
-        <div className="rounded-lg border border-dashed border-border p-8 text-sm text-muted-foreground">
-          No resources found{typeFilter ? ` for type "${typeFilter}"` : ''}.
+          return (
+            <a
+              key={pill.label}
+              href={pill.value ? `/resources?type=${pill.value}` : '/resources'}
+              className={cn(
+                'inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm transition-all',
+                active
+                  ? 'border-orange-400/30 bg-orange-500/10 text-orange-100'
+                  : 'border-white/10 bg-white/5 text-muted-foreground hover:bg-white/8 hover:text-white'
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {pill.label}
+            </a>
+          );
+        })}
+      </section>
+
+      {mutatingId && (
+        <div className="rounded-2xl border border-sky-400/20 bg-sky-500/10 px-4 py-3 text-sm text-sky-100">
+          Applying action to resource <span className="font-mono">{mutatingId.slice(0, 12)}</span>...
         </div>
       )}
 
-      {mutatingId && (
-        <div className="text-xs text-muted-foreground">Applying action to resource {mutatingId.slice(0, 12)}...</div>
+      <section className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
+        {!loading &&
+          filteredResources.map((resource) => (
+            <ResourceCard
+              key={resource.id}
+              resource={resource}
+              onStart={() => void handleStart(resource.id)}
+              onRestart={() => void handleRestart(resource.id)}
+              onStop={() => void handleStop(resource.id)}
+              onDelete={() => void handleDelete(resource.id)}
+              onGenerateWithAi={(selectedResource) =>
+                openStudio({ tab: 'compose', resourceType: selectedResource.type })
+              }
+            />
+          ))}
+      </section>
+
+      {loading && (
+        <div className="rounded-[24px] border border-dashed border-white/10 px-6 py-12 text-sm text-muted-foreground">
+          Loading resources...
+        </div>
+      )}
+      {!loading && filteredResources.length === 0 && (
+        <div className="rounded-[24px] border border-dashed border-white/10 px-6 py-12 text-sm text-muted-foreground">
+          No resources found{typeFilter ? ` for type "${typeFilter}"` : ''}.
+        </div>
       )}
 
       <CreateResourceDialog

@@ -2,12 +2,12 @@ package main
 
 import (
 	"github.com/abhishekkkk-15/devcon/agent/internal/app"
-	"github.com/abhishekkkk-15/devcon/agent/internal/transport/cli"
-	"github.com/abhishekkkk-15/devcon/agent/internal/transport/cli/commands"
-	"github.com/abhishekkkk-15/devcon/agent/internal/infra/docker"
 	"github.com/abhishekkkk-15/devcon/agent/internal/core/service"
 	"github.com/abhishekkkk-15/devcon/agent/internal/core/util"
+	"github.com/abhishekkkk-15/devcon/agent/internal/infra/docker"
 	"github.com/abhishekkkk-15/devcon/agent/internal/infra/system"
+	"github.com/abhishekkkk-15/devcon/agent/internal/transport/cli"
+	"github.com/abhishekkkk-15/devcon/agent/internal/transport/cli/commands"
 )
 
 func main() {
